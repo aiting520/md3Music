@@ -33,6 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
+      # 校验脚本对两头都跑：一端失败不再掐掉另一端，产物照常上传。
+      fail-fast: false
       matrix:
         include:
           - package: lite
@@ -130,15 +132,26 @@ jobs:
           fi
           echo "OK ($(du -h "$apk" | cut -f1))"
           aapt2="$ANDROID_HOME/build-tools/36.0.0/aapt2"
-          test "$("$aapt2" dump badging "$apk" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")" = "${{ matrix.application_id }}"
-          # 校验最终 APK 只含 arm64-v8a，并已启用 Impeller。
-          test "$("$aapt2" dump badging "$apk" | sed -n "s/^native-code: //p")" = "'arm64-v8a'"
+          # 包名 / ABI：先打印实际值再断言，失败时日志可读。
+          pkg="$("$aapt2" dump badging "$apk" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+          echo "package=$pkg (expect ${{ matrix.application_id }})"
+          test "$pkg" = "${{ matrix.application_id }}"
+          nc="$("$aapt2" dump badging "$apk" | sed -n "s/^native-code: //p")"
+          echo "native-code=$nc (expect 'arm64-v8a')"
+          test "$nc" = "'arm64-v8a'"
           "$aapt2" dump xmltree "$apk" --file AndroidManifest.xml > "$RUNNER_TEMP/manifest.txt"
-          grep -A1 'io.flutter.embedding.android.EnableImpeller' "$RUNNER_TEMP/manifest.txt" | grep '0xffffffff' > /dev/null
+          # aapt2 属性输出顺序不保证（value 行可能不在 name 行下一行，见
+          # main.yml impeller_val 的修复记录），从 name 行取到下一个 E: 元素
+          # 开始，在这段里找 android:value。Impeller 默认 true（0xffffffff）。
+          imp="$(sed -n '/io\.flutter\.embedding\.android\.EnableImpeller/,/^ *E: /p' \
+            "$RUNNER_TEMP/manifest.txt" | grep -m1 'android:value' || true)"
+          echo "impeller: $imp"
+          echo "$imp" | grep -E '0xffffffff|=true' > /dev/null
           if unzip -l "$apk" | grep -E 'libonnxruntime|libtensorflowlite|assets/models/|assets/stem/' > /dev/null; then
             echo "::error::lite 包含推理资产（3D/端侧分离 flavor 隔离失效）"; exit 1
           fi
       - name: Upload APK
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: MD3音乐-${{ env.FLAVOR_CN }}-${{ inputs.build_type }}
