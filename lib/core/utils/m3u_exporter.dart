@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../data/models/song.dart';
+import '../../data/models/song.dart';
 
 /// m3u8 歌单导出工具（借鉴 VLC / Poweramp 的歌单导出能力）。
 ///
