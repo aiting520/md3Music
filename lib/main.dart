@@ -20,6 +20,8 @@ import 'core/services/windows_default_font.dart';
 import 'core/services/windows_app_lifecycle.dart' as windows_lifecycle;
 import 'core/services/windows_window_controls.dart';
 import 'modules/recognition/floating_recognition_service.dart';
+import 'modules/library/add_to_playlist_sheet.dart';
+import 'widgets/song_list_item.dart';
 import 'core/services/equalizer_service.dart';
 import 'core/services/viper_master_service.dart';
 import 'core/services/lyricon_provider_service.dart';
@@ -74,6 +76,35 @@ Future<void> _main() async {
     initialUseBackgroundImage,
     initialThemeMode,
   ) = await runBootstrap();
+
+  // 全局注入歌曲更多菜单的「加入歌单」条目（自建歌单功能入口）。
+  // 用 appNavigatorKey 的 context 打开二级弹层：菜单 sheet 的 ctx 在
+  // pop 后失效，不能复用。
+  SongListItem.extraMenuTilesBuilder = (context, song) => [
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.of(context).pop();
+          final rootContext = appNavigatorKey.currentContext;
+          if (rootContext != null) {
+            showAddToPlaylistSheet(rootContext, song);
+          }
+        },
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          child: Row(
+            children: [
+              Icon(Icons.playlist_add, size: 20),
+              SizedBox(width: 12),
+              Text('加入自建歌单'),
+            ],
+          ),
+        ),
+      ),
+    ),
+  ];
 
   runApp(
     MyApp(

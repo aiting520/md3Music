@@ -11,6 +11,7 @@ import '../../data/models/dy_cover_models.dart';
 import '../../data/models/kugou_account.dart';
 import '../../data/models/mv_models.dart';
 import '../../data/models/song.dart';
+import '../../core/services/diagnostic_logger.dart';
 import 'kugou_endpoints.dart';
 import 'kugou_models.dart';
 import 'lyric_lookup_result.dart';
@@ -283,60 +284,80 @@ class KugouApiClient {
     void Function(_LyricApiFailure failure)? onLyricFailure,
     void Function(PlaybackUrlLocalFailure failure)? onPlaybackLocalFailure,
   }) async {
-    try {
-      final response = await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: Options(extra: {'noCache': noCache}),
-        cancelToken: cancelToken,
-      );
-      if (response.statusCode == 200) {
-        if (response.data is Map<String, dynamic>) {
-          return response.data as Map<String, dynamic>;
-        }
-        onLyricFailure?.call(_LyricApiFailure.invalidData);
-      } else {
-        onLyricFailure?.call(_lyricHttpFailure(response.statusCode));
-        final localFailure = _playbackLocalFailure(
-          response.statusCode,
-          response.data,
+    // 连接类瞬时错误自动重试：本地 API 的 GET 是幂等查询，服务器冷启动 /
+    // 端口切换的瞬间会抛 connectionError / connectionTimeout，一次失败就
+    // 返回 null 会让上层把可恢复的抖动当成「没有这首歌」。最多 3 次尝试，
+    // 短退避（300ms / 600ms），仅在本地 API、未取消、无响应体时重试。
+    const int maxAttempts = 3;
+    for (int attempt = 1;; attempt++) {
+      try {
+        final response = await _dio.get(
+          path,
+          queryParameters: queryParameters,
+          options: Options(extra: {'noCache': noCache}),
+          cancelToken: cancelToken,
         );
-        if (localFailure != null) onPlaybackLocalFailure?.call(localFailure);
-      }
-      print(
-        '[API _get] Non-200 or non-map: path=$path status=${response.statusCode} data=${response.data}',
-      );
-      return null;
-    } on DioException catch (e) {
-      final response = e.response;
-      if (response != null) {
-        if (response.statusCode == 200 &&
-            response.data is! Map<String, dynamic>) {
+        if (response.statusCode == 200) {
+          if (response.data is Map<String, dynamic>) {
+            return response.data as Map<String, dynamic>;
+          }
           onLyricFailure?.call(_LyricApiFailure.invalidData);
         } else {
           onLyricFailure?.call(_lyricHttpFailure(response.statusCode));
+          final localFailure = _playbackLocalFailure(
+            response.statusCode,
+            response.data,
+          );
+          if (localFailure != null) onPlaybackLocalFailure?.call(localFailure);
         }
-        final localFailure = _playbackLocalFailure(
-          response.statusCode,
-          response.data,
+        DiagnosticLogger.instance.w(
+          '[API _get] Non-200 or non-map: path=$path status=${response.statusCode} data=${response.data}',
         );
-        if (localFailure != null) onPlaybackLocalFailure?.call(localFailure);
-      } else if (e.type != DioExceptionType.cancel &&
-          cancelToken?.isCancelled != true &&
-          _isLocalApiUri(e.requestOptions.uri)) {
-        onPlaybackLocalFailure?.call(PlaybackUrlLocalFailure.serverUnavailable);
-        onLyricFailure?.call(_LyricApiFailure.transient);
-      } else {
-        onLyricFailure?.call(_LyricApiFailure.transient);
+        return null;
+      } on DioException catch (e) {
+        final bool canRetry =
+            e.response == null &&
+            _isConnectionError(e) &&
+            e.type != DioExceptionType.cancel &&
+            cancelToken?.isCancelled != true &&
+            _isLocalApiUri(e.requestOptions.uri) &&
+            attempt < maxAttempts;
+        if (canRetry) {
+          await Future<void>.delayed(Duration(milliseconds: 300 * attempt));
+          continue;
+        }
+        final response = e.response;
+        if (response != null) {
+          if (response.statusCode == 200 &&
+              response.data is! Map<String, dynamic>) {
+            onLyricFailure?.call(_LyricApiFailure.invalidData);
+          } else {
+            onLyricFailure?.call(_lyricHttpFailure(response.statusCode));
+          }
+          final localFailure = _playbackLocalFailure(
+            response.statusCode,
+            response.data,
+          );
+          if (localFailure != null) onPlaybackLocalFailure?.call(localFailure);
+        } else if (e.type != DioExceptionType.cancel &&
+            cancelToken?.isCancelled != true &&
+            _isLocalApiUri(e.requestOptions.uri)) {
+          onPlaybackLocalFailure?.call(
+            PlaybackUrlLocalFailure.serverUnavailable,
+          );
+          onLyricFailure?.call(_LyricApiFailure.transient);
+        } else {
+          onLyricFailure?.call(_LyricApiFailure.transient);
+        }
+        DiagnosticLogger.instance.w(
+          '[API _get] DioException: url=${e.requestOptions.uri} err=${e.type} response=${e.response?.statusCode} ${e.response?.data}',
+        );
+        return null;
+      } catch (e) {
+        onLyricFailure?.call(_LyricApiFailure.invalidData);
+        DiagnosticLogger.instance.w('[API _get] Error: $e');
+        return null;
       }
-      print(
-        '[API _get] DioException: url=${e.requestOptions.uri} err=${e.type} response=${e.response?.statusCode} ${e.response?.data}',
-      );
-      return null;
-    } catch (e) {
-      onLyricFailure?.call(_LyricApiFailure.invalidData);
-      print('[API _get] Error: $e');
-      return null;
     }
   }
 

@@ -80,7 +80,17 @@ class RemoteDownloadCache {
             headers['Authorization'] =
                 WebDavClient.basicAuth(effective.username, effective.password);
           }
-          final dio = Dio(BaseOptions(baseUrl: effective.baseUrl, headers: headers));
+          // 超时兜底：音频文件可能很大，但 dio 的 receiveTimeout 只约束
+          // 两个数据块之间的最大间隔（空闲超时），60s 足以容忍弱网抖动，
+          // 又能避免坏连接把 .part 永久挂起。
+          final dio = Dio(
+            BaseOptions(
+              baseUrl: effective.baseUrl,
+              headers: headers,
+              connectTimeout: const Duration(seconds: 15),
+              receiveTimeout: const Duration(seconds: 60),
+            ),
+          );
           await dio.download(remotePath, dest.path);
         }
       },

@@ -121,6 +121,7 @@ import 'providers/local_listen_stats_provider.dart';
 import 'providers/library_provider.dart';
 // ignore: unused_import  // 类型用于 ChangeNotifierProvider(create: ...) 的 T 推断
 import 'providers/local_favorites_provider.dart';
+import 'providers/local_playlists_provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/remote_control_provider.dart';
 import 'providers/remote_storage_provider.dart';
@@ -325,6 +326,8 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => LocalFavoritesProvider()),
+        // 自建歌单（本地歌单：新建/重命名/删除/m3u 导出），数据独立于收藏
+        ChangeNotifierProvider(create: (_) => LocalPlaylistsProvider()),
         // 跨页面广播「收藏的歌单」变更（详情页 → 我的收藏 tab 立即刷新）
         ChangeNotifierProvider(create: (_) => PlaylistCollectionNotifier()),
         // 主页 Tab 配置（显示/隐藏、排序）

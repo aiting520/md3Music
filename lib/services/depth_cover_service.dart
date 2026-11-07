@@ -22,6 +22,16 @@ class DepthCoverService {
 
   final cache = DepthCoverCache();
 
+  /// 封面下载共享 Dio：原先每次 `Dio()` 裸 new，无 connectTimeout /
+  /// receiveTimeout，弱网下会挂到系统级超时才失败。统一 10s 连接 /
+  /// 30s 接收超时，连接池复用也省去重复 TLS 握手。
+  static final Dio _coverDio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 30),
+    ),
+  );
+
   /// 推理后端（按编译期旗标选择，见 depth/depth_engine.dart）。
   late final DepthEngine engine = createDepthEngine();
 
@@ -107,7 +117,7 @@ class DepthCoverService {
       final dir = await cache.ensureEntryDir(key);
       final path = '$dir${Platform.pathSeparator}cover.img';
       try {
-        await Dio().download(uri, path);
+        await _coverDio.download(uri, path);
       } on DioException {
         debugPrint('[DepthCover] resolveSourceAndKeep http → 下载失败');
         return null;
@@ -137,7 +147,7 @@ class DepthCoverService {
       final dir = await getTemporaryDirectory();
       final path =
           '${dir.path}/depth_src_${DepthCoverCache.cacheKey(url)}.img';
-      await Dio().download(url, path);
+      await _coverDio.download(url, path);
       return path;
     } on DioException {
       return null;

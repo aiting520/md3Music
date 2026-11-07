@@ -18,6 +18,7 @@ import '../player/full_player_route.dart';
 import 'albums_page.dart';
 import 'artists_page.dart';
 import 'folders_page.dart';
+import 'local_playlists_tab.dart';
 import 'songs_page.dart';
 
 class LibraryPage extends StatefulWidget {
@@ -49,7 +50,7 @@ class _LibraryPageState extends State<LibraryPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     _searchFocusNode = FocusNode();
     if (kTvBuild) TvFabFocusBridge.instance.register(_tvFabNode);
     // 监听 FullPlayer 展开状态：展开时取消搜索框焦点，防止返回时自动弹输入法
@@ -228,6 +229,7 @@ class _LibraryPageState extends State<LibraryPage>
                   ArtistsPage(artists: libraryProvider.artists),
                   FoldersPage(folders: libraryProvider.folders),
                   const _LocalFavoritesTab(),
+                  const LocalPlaylistsTab(),
                 ],
               )),
           ],
@@ -317,6 +319,7 @@ class _LibraryPageState extends State<LibraryPage>
       Tab(text: '艺术家'),
       Tab(text: '文件夹'),
       Tab(text: '收藏'),
+      Tab(text: '歌单'),
     ],
     isScrollable: true,
     tabAlignment: centered ? TabAlignment.center : TabAlignment.start,

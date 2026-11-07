@@ -2184,7 +2184,12 @@ class PlayerProvider extends ChangeNotifier with WidgetsBindingObserver {
       // 用户点播放触发 playingStream 再次推送时命中缓存秒显。
       _updateNotification();
       notifyListeners();
-    } catch (e) {}
+    } catch (e, stack) {
+      // 原实现整段空吞：恢复失败（损坏的快照 / 端口未就绪 / 反序列化异常）
+      // 无任何记录，用户反馈「上次播放的歌没了」时无从定位。至少进诊断日志。
+      DiagnosticLogger.instance.w('冷启动恢复播放状态失败: $e\n$stack');
+      notifyListeners();
+    }
   }
 
   /// 游标保存节流间隔：播放中每 5s 落盘一次播放位置，直接杀后台最多丢
