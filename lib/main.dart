@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'core/build_flags.dart';
+import 'core/widgets/liquid_glass.dart';
 import 'core/remote/tv_focus_debug.dart';
 import 'core/layout/responsive_layout.dart';
 import 'core/utils/app_haptics.dart';
@@ -328,6 +329,8 @@ Future<(bool, bool, bool, ThemeMode?)> runBootstrap() async {
               SettingsRepository.secondaryPlayerProgressPreferenceKey,
             ) ??
             true;
+    kLiquidGlassEnabled.value =
+        prefs.getBool(SettingsRepository.liquidGlassPreferenceKey) ?? true;
     kSecondaryPlayerOpacity.value =
         (prefs.getDouble(
                   SettingsRepository.secondaryPlayerOpacityPreferenceKey,

@@ -12,6 +12,7 @@ import '../../core/build_flags.dart';
 import '../../core/remote/tv_hint_bar.dart';
 import '../../core/remote/tv_lyrics_focus.dart';
 import '../../core/utils/lyric_wrap_plan.dart';
+import '../../core/widgets/liquid_glass.dart';
 
 class LyricsView extends StatefulWidget {
   final String lyrics;
@@ -170,6 +171,14 @@ class LyricsViewState extends State<LyricsView> {
   @override
   void didUpdateWidget(covariant LyricsView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // 位置源换实例时必须改订阅：只 add 不 remove 会让新源不生效
+    // （歌词停在上一次的位置），旧源还留着监听器直到 dispose ——
+    // 而 dispose 移除的是**当前** widget 的那个，旧源上的监听器就永久泄漏。
+    if (oldWidget.positionListenable != widget.positionListenable) {
+      oldWidget.positionListenable?.removeListener(_onExternalPos);
+      widget.positionListenable?.addListener(_onExternalPos);
+      _onExternalPos();
+    }
     // 无 listenable（静态模式）时，用外层传的 position 覆盖
     if (widget.positionListenable == null) {
       _effPosition = widget.position;
@@ -607,6 +616,12 @@ class LyricsViewState extends State<LyricsView> {
 
   static const double _auxiliaryLineHeight = 1.4;
 
+  /// 当前行辉光 / 呼吸缩放是否启用。
+  ///
+  /// 跟随「液态玻璃」总开关（同一套新视觉效果），TV 构建关闭：
+  /// 电视端是大面积色块渲染，叠辉光只会糊成一团。
+  bool get _lyricGlow => !kTvBuild && kLiquidGlassEnabled.value;
+
   String? _selectedAuxiliaryText(_LyricLine line) {
     if (!_prefs.showAuxiliary) return null;
     final preferred = _prefs.displayMode;
@@ -780,7 +795,12 @@ class LyricsViewState extends State<LyricsView> {
                     // 行高随换行自适应（1 行或 2 行），不再裁切长歌词
                     height: _lineHeights[index],
                     alignment: Alignment.center,
-                    child: Column(
+                    child: AnimatedScale(
+                      // 当前句轻微「呼吸」放大（纯 transform，不触发重排）。
+                      scale: isCurrent && _lyricGlow ? 1.02 : 1.0,
+                      duration: const Duration(milliseconds: 260),
+                      curve: Curves.easeOutCubic,
+                      child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         AnimatedDefaultTextStyle(
@@ -801,6 +821,24 @@ class LyricsViewState extends State<LyricsView> {
                                     : lyricTextColor.withValues(alpha: 0.7)),
                             // 与 _ensureLayout 的测量保持一致（换行内部行距）
                             height: _wrapLineHeight,
+                            // 当前行辉光：两层不同半径的 accent 阴影，读起来像
+                            // 「灯打在字上」而不是描边。只用 1~2 行，代价可忽略。
+                            shadows: isCurrent && _lyricGlow
+                                ? <Shadow>[
+                                    Shadow(
+                                      color: colorScheme.primary.withValues(
+                                        alpha: 0.30,
+                                      ),
+                                      blurRadius: 22,
+                                    ),
+                                    Shadow(
+                                      color: colorScheme.primary.withValues(
+                                        alpha: 0.14,
+                                      ),
+                                      blurRadius: 44,
+                                    ),
+                                  ]
+                                : null,
                           ),
                           child: Text(
                             index < _displayTexts.length
@@ -838,6 +876,7 @@ class LyricsViewState extends State<LyricsView> {
                           ),
                       ],
                     ),
+                    ),
                   ),
                 );
 
@@ -857,9 +896,80 @@ class LyricsViewState extends State<LyricsView> {
       );
     }
 
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
-      child: content,
+    // 订阅「液态玻璃」开关：设置页翻转时立即在玻璃面板 / 实底之间切换。
+    return ValueListenableBuilder<bool>(
+      valueListenable: kLiquidGlassEnabled,
+      builder: (context, glassEnabled, _) {
+        final bool glass = glassEnabled && !kTvBuild;
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.noScaling,
+          ),
+          child: glass
+              ? _wrapLyricsInGlass(context, content, colorScheme, hasLyrics: _parsedLyrics.isNotEmpty)
+              : content,
+        );
+      },
+    );
+  }
+
+  /// 把歌词区包进一块液态玻璃面板（「液态玻璃歌词面板」）。
+  ///
+  /// 只在非 TV 构建、且总开关开启时使用：面板四周留 10dp，圆角 26，
+  /// 顶部压一条 [LiquidGlassEdgeLight] 把边界从背景里勾出来。
+  /// 歌词列表本身仍是同一个 ListView —— 手势、滚动、双击跳转逐像素不变，
+  /// 只是被裁进玻璃里。
+  Widget _wrapLyricsInGlass(
+    BuildContext context,
+    Widget content,
+    ColorScheme colorScheme, {
+    required bool hasLyrics,
+  }) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(10, hasLyrics ? 6 : 10, 10, 8),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: LiquidGlass(
+              style: LiquidGlassStyle.panel,
+              borderRadius: 26,
+              tint: colorScheme.surface,
+              fallbackColor: colorScheme.surface,
+              child: const SizedBox.expand(),
+            ),
+          ),
+          // 舞台追光：当前行由滚动自动居中，故把一团 accent 柔光钉在面板
+          // 中心 —— 当前句永远落在光心里，是 Folia 那种「聚焦感」最省的实现
+          // （静态渐变，零逐帧开销，不随行号移动）。
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(26),
+                  gradient: RadialGradient(
+                    center: const Alignment(0, 0.06),
+                    radius: 0.72,
+                    colors: [
+                      colorScheme.primary.withValues(alpha: 0.16),
+                      colorScheme.primary.withValues(alpha: 0.05),
+                      colorScheme.primary.withValues(alpha: 0.0),
+                    ],
+                    stops: const [0.0, 0.45, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // 顶缘高光：玻璃面已经很淡，这条线负责「勾边」。
+          const Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: LiquidGlassEdgeLight(radius: 26, intensity: 0.45),
+          ),
+          Positioned.fill(child: content),
+        ],
+      ),
     );
   }
 }

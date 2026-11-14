@@ -345,6 +345,22 @@ class SettingsRepository {
     await prefs.setBool(secondaryPlayerProgressPreferenceKey, enabled);
   }
 
+  /// 液态玻璃（毛玻璃 + 高光 + 折射边）总开关。默认开启。
+  ///
+  /// 覆盖三处落点：悬浮迷你播放器胶囊、底部常驻条、播放页歌词玻璃面板。
+  /// 低端机 / 视觉不习惯时可关，关掉后三处退化为原来的实色表面。
+  static const String liquidGlassPreferenceKey = 'settings_liquid_glass';
+
+  Future<bool> getLiquidGlass() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(liquidGlassPreferenceKey) ?? true;
+  }
+
+  Future<void> setLiquidGlass(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(liquidGlassPreferenceKey, enabled);
+  }
+
   /// 一级页面是否也用悬浮底栏（false = 一级页面退回底部常驻条）。默认开启。
   static const String secondaryPlayerOnPrimaryPreferenceKey =
       'settings_secondary_player_on_primary';

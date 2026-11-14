@@ -412,7 +412,12 @@ class _SongRecognitionPageState extends State<SongRecognitionPage>
       if (!exists) return false;
 
       final fileBytes = await file.readAsBytes();
-      await file.delete().catchError((_) {});
+      // 临时文件删不掉不影响识别：用 try/catch 而不是 catchError ——
+      // `Future<FileSystemEntity>` 的 catchError 要求 handler 返回同类型，
+      // 返回 void 会在失败分支抛 TypeError，把「删不掉」放大成「识别崩掉」。
+      try {
+        await file.delete();
+      } catch (_) {}
 
       if (fileBytes.isEmpty) return false;
 

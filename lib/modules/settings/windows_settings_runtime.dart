@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/widgets.dart';
+import '../../core/widgets/liquid_glass.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/layout/responsive_layout.dart';
@@ -131,6 +132,7 @@ class WindowsSettingsRuntime {
     DepthCoverService.enabledSignal.value = await repo.getDepthCoverEnabled();
     miniPlayerSwipeSwitchEnabled.value = await repo
         .getMiniPlayerSwipeSwitchEnabled();
+    kLiquidGlassEnabled.value = await repo.getLiquidGlass();
     kSeekBarWaveEnabled.value = await repo.getSeekBarWaveEnabled();
     kCoverShadowIntensity.value = await repo.getCoverShadowStrength();
     kLandscapeDetachedControlsEnabled.value = await repo

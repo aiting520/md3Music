@@ -73,6 +73,7 @@ import '../../widgets/player_top_bar_tab_dots.dart';
 import '../../widgets/apple_lyrics/layout/lyric_preferences.dart';
 import '../../widgets/apple_lyrics/utils/lyric_credit_filter.dart';
 import '../../widgets/md3_lyric_preferences.dart';
+import '../../core/widgets/liquid_glass.dart';
 import 'lyric_animation_settings_page.dart';
 import '../../widgets/seed_color_picker.dart';
 import '../../widgets/settings_preview/cover_dynamic_preview.dart';
@@ -3211,6 +3212,21 @@ class _SettingsPageState extends State<SettingsPage>
                         kSecondaryPlayerProgressEnabled.value = value;
                       }
                     : null,
+              ),
+              // search-item: 液态玻璃 | 毛玻璃 玻璃 磨砂 模糊 悬浮条 歌词面板 液态玻璃 liquid glass
+              ValueListenableBuilder<bool>(
+                valueListenable: kLiquidGlassEnabled,
+                builder: (context, glassEnabled, _) => SwitchListTile(
+                  title: const Text('液态玻璃'),
+                  subtitle: const Text('悬浮播放器、底部播放条与歌词面板的毛玻璃质感'),
+                  value: glassEnabled,
+                  onChanged: (value) {
+                    AppHaptics.lightImpact(HapticCategory.control);
+                    kLiquidGlassEnabled.value = value;
+                    // ignore: discarded_futures
+                    _settingsRepository.setLiquidGlass(value);
+                  },
+                ),
               ),
               // search-item: 悬浮播放器透明度 | 悬浮迷你播放器 迷你播放条 播放器透明度 不透明度
               Padding(

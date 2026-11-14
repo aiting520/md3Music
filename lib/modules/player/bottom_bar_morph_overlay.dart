@@ -13,6 +13,7 @@ import '../../core/services/media_notification_service.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/motion_constants.dart';
 import '../../core/utils/app_haptics.dart';
+import '../../core/widgets/liquid_glass.dart';
 import '../../data/models/song.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/player_provider.dart';
@@ -1137,8 +1138,17 @@ class _MorphBarLayerState extends State<_MorphBarLayer> {
                 child: Stack(
                   children: [
                     // 底色（含底部净空）：与两端同源取色（resolveMiniPlayerBackground），
-                    // 端点处与真身逐像素同值。
-                    Positioned.fill(child: ColoredBox(color: background)),
+                    // 端点处与真身逐像素同值。两端真身现在都是液态玻璃，故这块
+                    // 假体也走同一材质，否则 260ms 交叉过渡期间会看到「玻璃→实色」闪。
+                    Positioned.fill(
+                      child: LiquidGlass(
+                        borderRadius: layout.barRadius,
+                        style: LiquidGlassStyle.docked,
+                        tint: colorScheme.surface,
+                        fallbackColor: background,
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
                     // 进度：同一个 painter 从贴顶直线（formT=0）连续变形为内缘包边
                     // （formT=1）。盒子高由 2 插值到整条高，中心线随之张开。
                     Positioned(

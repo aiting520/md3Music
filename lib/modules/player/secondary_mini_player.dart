@@ -18,6 +18,7 @@ import '../../core/layout/responsive_layout.dart';
 import '../../core/layout/ui_density.dart';
 import '../../core/services/player_frame_driver.dart';
 import '../../core/utils/app_haptics.dart';
+import '../../core/widgets/liquid_glass.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../providers/car_mode_provider.dart';
 import '../../providers/player_provider.dart';
@@ -1486,13 +1487,21 @@ class _SecondaryMiniPlayerState extends State<SecondaryMiniPlayer>
               openFullPlayer(context, scene: _captureMorphScene());
             }
           },
-          child: Material(
+          child: LiquidGlass(
+            // 液态玻璃：模糊 + 高光 + 折射边。关掉开关时用 fallbackColor
+            // 还原成原底色，观感与改造前逐像素一致。
+            borderRadius: radius,
+            tint: cs.surface,
+            fallbackColor: chromeBackground,
+            opacity: chrome,
+            child: Material(
             key: _pillKey,
             elevation: 0,
-            // 底色与常驻条同源取色（复用 resolveMiniPlayerBackground），两形态切换零色差；
-            // 壁纸档 0.2 是 2026-10-10 确认的决定，辨识度由胶囊既有投影（下方 shadow）承担。
-            // 展开交接时 alpha 按 [chrome] 缩放（见上方 chromeBackground）。
-            color: chromeBackground,
+            // 底色交给 [LiquidGlass]：玻璃开时由它画模糊 + 高光 + 折射边，
+            // 关时用 [LiquidGlass.fallbackColor] 还原成原来那块同源底色
+            // （复用 resolveMiniPlayerBackground，两形态切换零色差）。
+            // 展开交接时整块按 [chrome] 衰减（见上方 chromeBackground）。
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(radius),
             clipBehavior: Clip.antiAlias,
             child: SizedBox(
@@ -1560,6 +1569,7 @@ class _SecondaryMiniPlayerState extends State<SecondaryMiniPlayer>
                 ],
               ),
             ),
+          ),
           ),
         ),
         ),

@@ -19,6 +19,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../providers/player_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/car_mode_provider.dart';
+import '../../core/widgets/liquid_glass.dart';
 import '../../widgets/smart_artwork_image.dart';
 import '../../widgets/player_artwork_image.dart';
 import '../../widgets/playback_status_feedback.dart';
@@ -740,11 +741,15 @@ class _MiniPlayerState extends State<MiniPlayer>
                 alone: alone,
                 t: _collapseT(context, collapse),
               );
-              return DecoratedBox(
-                // 底色画在这一层（含底部净空区）：净空带与条体同色，不露白边。
-                // 取值与展开面板的过渡态底色同源（resolveMiniPlayerBackground），
-                // p=0 时面板窗口恰好压在本条上，颜色一致才看不出「起点色差」。
-                decoration: BoxDecoration(color: background),
+              return LiquidGlass(
+                // 液态玻璃：整条（含底部净空区）铺一层毛玻璃，滚动内容从条体后
+                // 透出来。净空带与条体同一层，不露白边；关掉开关时用
+                // [LiquidGlass.fallbackColor] 还原成原来的同源底色
+                // （resolveMiniPlayerBackground），p=0 时与展开面板仍零色差。
+                borderRadius: 0,
+                style: LiquidGlassStyle.docked,
+                tint: colorScheme.surface,
+                fallbackColor: background,
                 child: Padding(
                   // 底部净空：自身即屏幕最底部时（二级路由 / 横屏侧栏 /
                   // 导航栏隐藏），同时防住屏幕圆角裁切与系统手势条；下方还压着
