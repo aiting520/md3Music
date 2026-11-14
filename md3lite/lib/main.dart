@@ -38,7 +38,8 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMixin {
+class _HomeShellState extends State<HomeShell>
+    with SingleTickerProviderStateMixin {
   late final PlaybackClock _clock;
   late final Ticker _ticker;
   Duration _last = Duration.zero;
@@ -138,9 +139,21 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
             ),
           ),
         ),
-        Positioned(left: -140, top: -160, child: _glow(a.withOpacity(0.55), 420)),
-        Positioned(right: -160, top: 120, child: _glow(a.withOpacity(0.28), 380)),
-        Positioned(left: -80, bottom: -180, child: _glow(a.withOpacity(0.30), 440)),
+        Positioned(
+          left: -140,
+          top: -160,
+          child: _glow(a.withOpacity(0.55), 420),
+        ),
+        Positioned(
+          right: -160,
+          top: 120,
+          child: _glow(a.withOpacity(0.28), 380),
+        ),
+        Positioned(
+          left: -80,
+          bottom: -180,
+          child: _glow(a.withOpacity(0.30), 440),
+        ),
       ],
     );
   }
@@ -176,11 +189,20 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: _accent),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _accent,
+                  ),
                 ),
                 const SizedBox(width: 8),
-                const Text('本地库 · 已连接',
-                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white)),
+                const Text(
+                  '本地库 · 已连接',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
@@ -191,8 +213,14 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
             tint: 0.09,
             sheen: false,
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-            child: const Text('富江',
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white)),
+            child: const Text(
+              '富江',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
       ),
@@ -212,16 +240,26 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_data.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
+                    Text(
+                      _data.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('${_data.artist} · ${_data.album}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12.5, color: Colors.white.withOpacity(0.55))),
+                    Text(
+                      '${_data.artist} · ${_data.album}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: Colors.white.withOpacity(0.55),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -256,7 +294,11 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
           ],
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.40), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.40),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
         ],
       ),
     );
@@ -276,7 +318,9 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                   activeTrackColor: _accent,
                   inactiveTrackColor: Colors.white.withOpacity(0.16),
                   thumbColor: Colors.white,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 6,
+                  ),
                   overlayShape: SliderComponentShape.noOverlay,
                 ),
                 child: Slider(
@@ -289,16 +333,22 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_fmt(_clock.t),
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white.withOpacity(0.45),
-                            fontFeatures: const [FontFeature.tabularFigures()])),
-                    Text(_fmt(_clock.duration),
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white.withOpacity(0.45),
-                            fontFeatures: const [FontFeature.tabularFigures()])),
+                    Text(
+                      _fmt(_clock.t),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withOpacity(0.45),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    Text(
+                      _fmt(_clock.duration),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withOpacity(0.45),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
                   ],
                 ),
               ),
