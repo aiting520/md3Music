@@ -1,0 +1,19 @@
+name: md3lite
+description: "MD3Music 精简重写版 —— 液态玻璃悬浮栏 + Folia 动态歌词"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
