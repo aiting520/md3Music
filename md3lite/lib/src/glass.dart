@@ -32,9 +32,12 @@ class LiquidGlass extends StatefulWidget {
   State<LiquidGlass> createState() => _LiquidGlassState();
 }
 
-class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStateMixin {
-  late final AnimationController _sheen =
-      AnimationController(vsync: this, duration: const Duration(seconds: 9))..repeat();
+class _LiquidGlassState extends State<LiquidGlass>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _sheen = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 9),
+  )..repeat();
 
   @override
   void dispose() {
