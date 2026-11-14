@@ -4,7 +4,7 @@
 - 新增液态玻璃歌词面板（MD3 播放页）：歌词浮在玻璃面上，当前句带双层辉光与轻微呼吸缩放，面板中心加一团主题色舞台追光
 - 修复歌词视图在位置源换实例后仍监听旧源、导致歌词停更且监听器泄漏的问题
 - 修复识曲页临时文件删除失败时 `catchError` 返回值不匹配抛 TypeError、把「删不掉」放大成「识别失败」的问题
-- 修复构建：Flutter stable 升到 3.50.0 后把 Gradle 最低要求抬到 9.3.1，`assembleLiteDebug` 直接挂在 `apply plugin 'dev.flutter.flutter-gradle-plugin'`（报错仍是旧的 9.1.0）；Gradle wrapper 升至 9.3.1，`flutter build apk` 恢复可构建
+- 修复构建：CI 跟随 `channel: stable` 漂移到了 3.50.0，把 Flutter 的最低工具链要求抬到 Gradle 9.3.1 / AGP 9.1.1 / Kotlin 2.4.10（原来 9.1.0 / 9.0.1 / 2.3.20 全部低于下限，`assembleLiteDebug` 直接挂在 apply plugin）；三处一并升到 9.5.0 / 9.3.1 / 2.4.20，`flutter build apk` 恢复可构建
 
 ## v6.3.0
 

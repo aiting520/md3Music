@@ -5,7 +5,7 @@ val args = listOf("-Xlint:deprecation", "-Xlint:unchecked")
 buildscript {
     // Uncomment when moving to Kotlin
     // val kotlinVersion = "2.3.20"
-    val agpVersion = "9.0.1"
+    val agpVersion = "9.3.1"
     repositories {
         google()
         mavenCentral()
