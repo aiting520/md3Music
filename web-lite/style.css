@@ -1,0 +1,567 @@
+/* ============================================================
+ *  style.css — 液态玻璃 (Liquid Glass) + Folia 动态歌词
+ *  层级约定:
+ *    L0 .aurora      极光背景(随 hue 变化)
+ *    L1 .grain       噪点,压住玻璃的"塑料感"
+ *    L2 .page        内容
+ *    L3 .glass       真正的玻璃件(backdrop-filter + 三层折射)
+ *    L4 .lens        镜面高光 / 斜向流光
+ * ============================================================ */
+
+:root {
+  --hue: 196;
+  --bg0: hsl(var(--hue) 42% 6%);
+  --bg1: hsl(calc(var(--hue) + 28) 48% 9%);
+
+  --hi: #ffffff;
+  --dim: hsl(var(--hue) 6% 88% / .30);
+  --accent: hsl(calc(var(--hue) + 180) 92% 68%);
+
+  --glass-tint: hsl(var(--hue) 30% 96% / .085);
+  --glass-edge: hsl(0 0% 100% / .16);
+  --glass-blur: 26px;
+
+  --dock-h: 66px;
+  --mini-h: 62px;
+  --r-lg: 26px;
+  --r-md: 22px;
+  --ease: cubic-bezier(.34, 1.36, .42, 1);
+  --ease-soft: cubic-bezier(.22, 1, .36, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg0);
+  color: #fff;
+  font-family: "SF Pro Display", "PingFang SC", "Noto Sans SC", -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* ---------- L0 极光背景 ---------- */
+.aurora {
+  position: fixed;
+  inset: -8%;
+  z-index: 0;
+  transform: translateZ(0);
+  transition: background 1.2s var(--ease-soft);
+  background:
+    /* 暗角(只压背景,不压内容,省一层全屏混合) */
+    radial-gradient(78% 64% at 50% 44%, transparent 44%, hsl(0 0% 0% / .34) 100%),
+    /* 封面色晕 */
+    radial-gradient(60% 48% at 50% 22%, hsl(calc(var(--hue) + 40) 94% 64% / .34), transparent 72%),
+    radial-gradient(52% 44% at 76% 60%, hsl(calc(var(--hue) + 200) 88% 58% / .20), transparent 74%),
+    /* 极光 */
+    radial-gradient(54% 46% at 16% 12%, hsl(calc(var(--hue) + 12) 92% 58% / .58), transparent 70%),
+    radial-gradient(48% 42% at 86% 8%, hsl(calc(var(--hue) + 245) 86% 62% / .30), transparent 74%),
+    radial-gradient(66% 54% at 52% 100%, hsl(calc(var(--hue) + 178) 78% 48% / .42), transparent 74%),
+    radial-gradient(42% 36% at 94% 86%, hsl(calc(var(--hue) + 320) 78% 52% / .24), transparent 72%),
+    linear-gradient(168deg, hsl(calc(var(--hue) + 8) 34% 13%), hsl(var(--hue) 40% 7%) 68%);
+}
+
+/* ---------- L1 噪点 ---------- */
+.grain {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .05;
+  display: none;
+}
+
+/* ---------- L3 玻璃件 ---------- */
+.glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(190%) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur)) saturate(190%) brightness(1.06);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / .34),
+    inset 0 -1px 0 hsl(0 0% 100% / .06),
+    inset 1px 0 0 hsl(0 0% 100% / .10),
+    inset -1px 0 0 hsl(0 0% 100% / .10),
+    0 10px 34px hsl(calc(var(--hue) + 300) 40% 4% / .48),
+    0 2px 6px hsl(0 0% 0% / .28);
+  transition: background .5s var(--ease-soft), border-color .5s var(--ease-soft);
+}
+/* 顶部受光 + 底部内阴影(厚度) */
+.glass::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, hsl(0 0% 100% / .22), hsl(0 0% 100% / .04) 26%, transparent 52%),
+    radial-gradient(120% 80% at 50% 120%, hsl(calc(var(--hue) + 200) 100% 70% / .10), transparent 62%);
+  mix-blend-mode: plus-lighter;
+}
+/* 边缘折射环 */
+.glass::after {
+  content: "";
+  position: absolute; inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(from 210deg,
+      hsl(0 0% 100% / .55), hsl(0 0% 100% / .04) 18%,
+      hsl(calc(var(--hue) + 180) 100% 80% / .30) 34%,
+      hsl(0 0% 100% / .05) 56%,
+      hsl(0 0% 100% / .40) 74%,
+      hsl(0 0% 100% / .04) 88%, hsl(0 0% 100% / .55));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: .9;
+}
+/* L4 斜向流光 */
+.glass .sheen {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  overflow: hidden;
+}
+.glass .sheen::after {
+  content: "";
+  position: absolute; top: -60%; left: -40%;
+  width: 46%; height: 220%;
+  background: linear-gradient(100deg, transparent, hsl(0 0% 100% / .16), transparent);
+  transform: rotate(14deg);
+  animation: sheen 9s linear infinite;
+  mix-blend-mode: plus-lighter;
+}
+@keyframes sheen {
+  0%   { transform: translateX(-40%) rotate(14deg); opacity: 0; }
+  12%  { opacity: 1; }
+  46%  { transform: translateX(320%) rotate(14deg); opacity: 0; }
+  100% { transform: translateX(320%) rotate(14deg); opacity: 0; }
+}
+
+/* ============================================================
+ *  页面骨架
+ * ============================================================ */
+.app { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: max(14px, env(safe-area-inset-top)) 18px 6px;
+  gap: 10px;
+}
+.chip {
+  display: flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 14px;
+  border-radius: 19px;
+  font-size: 13px; font-weight: 600; letter-spacing: .2px;
+  color: hsl(0 0% 100% / .82);
+  --glass-blur: 16px;
+}
+.chip .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: .35; transform: scale(.82); } }
+
+.pages { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.page {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transform: scale(.97) translateY(10px);
+  transition: opacity .34s var(--ease-soft), transform .5s var(--ease), visibility .34s;
+}
+.page.on { opacity: 1; visibility: visible; transform: none; }
+
+/* ============================================================
+ *  播放页 + Folia 歌词
+ * ============================================================ */
+.now {
+  padding: 4px 26px 0;
+  display: flex; align-items: center; gap: 14px;
+}
+.art {
+  width: 56px; height: 56px; border-radius: 16px; flex: none;
+  background:
+    radial-gradient(80% 80% at 24% 22%, hsl(calc(var(--hue) + 40) 92% 66%), transparent 64%),
+    radial-gradient(90% 90% at 78% 76%, hsl(calc(var(--hue) + 200) 88% 58%), transparent 60%),
+    linear-gradient(150deg, hsl(calc(var(--hue) + 320) 70% 42%), hsl(var(--hue) 70% 22%));
+  box-shadow: 0 8px 22px hsl(0 0% 0% / .45), inset 0 1px 0 hsl(0 0% 100% / .3);
+  position: relative; overflow: hidden;
+  transition: background 1.2s var(--ease-soft);
+}
+.art::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(120deg, hsl(0 0% 100% / .34), transparent 42%);
+}
+.meta { min-width: 0; }
+.meta h1 { font-size: 17px; font-weight: 700; letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta p { font-size: 12.5px; color: hsl(0 0% 100% / .55); margin-top: 3px; }
+
+/* 歌词视口 */
+.lyric-wrap {
+  position: relative; flex: 1; min-height: 0;
+  margin-top: 10px;
+  overflow: hidden;
+  cursor: grab;
+}
+.lyric-wrap:active { cursor: grabbing; }
+/* 上下渐隐:静态覆盖层,滚动时不用重算全屏遮罩 */
+.lyric-wrap::before, .lyric-wrap::after {
+  content: "";
+  position: absolute; left: 0; right: 0; height: 52px;
+  z-index: 3; pointer-events: none;
+}
+.lyric-wrap::before {
+  top: 0;
+  height: 40px;
+  background: linear-gradient(180deg, hsl(var(--hue) 30% 6% / .42), transparent);
+}
+.lyric-wrap::after {
+  bottom: 0;
+  height: 64px;
+  background: linear-gradient(0deg, hsl(var(--hue) 30% 6% / .80), transparent);
+}
+.track {
+  position: absolute; left: 0; right: 0; top: 46%;
+  will-change: transform;
+}
+.line {
+  padding: 13px 22px;
+  text-align: center;
+  transform-origin: 50% 50%;
+  transition: opacity .5s var(--ease-soft), filter .5s var(--ease-soft), transform .55s var(--ease);
+  opacity: .28;
+  filter: blur(var(--depth, 2.4px));
+}
+.line .inner {
+  display: block;
+  font-size: var(--fs, 28px);
+  line-height: 1.32;
+  font-weight: 700;
+  letter-spacing: 0;
+  transform-origin: 50% 50%;
+}
+.line[data-st="past"] { opacity: .34; filter: blur(calc(var(--depth, 2.4px) * .75)); }
+.line[data-st="now"]  { opacity: 1; filter: none; }
+.line[data-st="now"] .w { --dim: hsl(0 0% 100% / .34); }
+
+/* 逐字扫描:每个字自带一条水平渐变,靠 --p 推进 */
+.w {
+  display: inline-block;
+  background-image: linear-gradient(90deg,
+      var(--hi) 0%,
+      var(--hi) calc(var(--p, 0) * 100% - .001%),
+      var(--dim) calc(var(--p, 0) * 100% + .001%),
+      var(--dim) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transition: filter .28s ease;
+  will-change: background-image;
+}
+.line[data-st="now"] .w { transition: transform .22s var(--ease), filter .3s ease; }
+.line[data-st="now"] .w[data-p="1"] {
+  filter: drop-shadow(0 0 9px hsl(0 0% 100% / .35));
+}
+.line[data-st="now"] .w[data-live="1"] {
+  transform: translateY(-2.5px) scale(1.06);
+  filter: drop-shadow(0 0 11px hsl(calc(var(--hue) + 180) 100% 82% / .70));
+}
+/* 当前行整行的呼吸光,压在所有字下面 */
+.line[data-st="now"] .inner::before {
+  content: "";
+  position: absolute; left: 50%; top: 50%;
+  width: 92%; height: 240%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, hsl(calc(var(--hue) + 195) 100% 74% / .30), transparent 70%);
+  animation: breathe 4.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+.line .inner { position: relative; }
+@keyframes breathe { 50% { opacity: .45; } }
+/* 字弹出的微动 */
+.line[data-st="now"] .w.pop { animation: pop .42s var(--ease) both; }
+@keyframes pop {
+  0%   { transform: translateY(.16em) scale(.94); }
+  100% { transform: none; }
+}
+
+/* 间奏点 */
+.interlude {
+  display: flex; gap: 8px; padding: 10px 30px 14px;
+  justify-content: center;
+  opacity: .5; filter: blur(.6px);
+}
+.interlude i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: hsl(0 0% 100% / .75);
+  animation: dot 1.5s ease-in-out infinite;
+}
+.interlude i:nth-child(2) { animation-delay: .18s; }
+.interlude i:nth-child(3) { animation-delay: .36s; }
+@keyframes dot {
+  0%, 100% { transform: translateY(0) scale(1); opacity: .35; }
+  40%      { transform: translateY(-7px) scale(1.25); opacity: 1; }
+}
+
+/* 进度条 */
+.seek { padding: 0 26px 12px; }
+.seek .rail {
+  height: 5px; border-radius: 999px;
+  background: hsl(0 0% 100% / .20);
+  position: relative; overflow: visible;
+  cursor: pointer;
+}
+.seek .fill {
+  position: absolute; inset: 0; border-radius: 999px;
+  background: linear-gradient(90deg, hsl(calc(var(--hue) + 30) 96% 74%), hsl(calc(var(--hue) + 190) 100% 78%));
+  box-shadow: 0 0 14px hsl(calc(var(--hue) + 200) 100% 70% / .6);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+.seek .fill::after {
+  content: ""; position: absolute; right: -4px; top: 50%;
+  width: 10px; height: 10px; margin-top: -5px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 12px hsl(calc(var(--hue) + 200) 100% 80% / .9);
+}
+.seek .t { display: flex; justify-content: space-between; font-size: 11px; color: hsl(0 0% 100% / .45); margin-top: 7px; font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+ *  Dock:液态玻璃悬浮栏
+ * ============================================================ */
+.dock {
+  position: relative;
+  padding: 0 14px calc(12px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 10px;
+  z-index: 5;
+}
+
+/* 迷你播放条 */
+.mini {
+  display: flex; align-items: center; gap: 12px;
+  height: var(--mini-h);
+  padding: 0 10px 0 10px;
+  border-radius: var(--r-md);
+  --glass-blur: 22px;
+  transform: translateY(0);
+  animation: rise .7s var(--ease) both;
+}
+@keyframes rise { from { transform: translateY(18px); opacity: 0; } }
+.mini .art { width: 42px; height: 42px; border-radius: 13px; }
+.mini .txt { flex: 1; min-width: 0; }
+.mini .txt b { font-size: 13px; line-height: 1.2; font-weight: 650; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini .txt s { font-size: 11px; line-height: 1.2; color: hsl(0 0% 100% / .5); text-decoration: none; display: block; margin-top: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mini .ring {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: inherit;
+  overflow: hidden;
+}
+.mini .ring i {
+  display: block; height: 100%; width: 100%;
+  transform-origin: 0 50%; transform: scaleX(0);
+  background: linear-gradient(90deg, hsl(calc(var(--hue) + 200) 100% 76%), hsl(calc(var(--hue) + 330) 100% 78%));
+}
+.btn {
+  width: 38px; height: 38px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%; border: 0; cursor: pointer;
+  background: hsl(0 0% 100% / .08);
+  color: hsl(0 0% 100% / .92);
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .22);
+  transition: transform .2s var(--ease), background .2s;
+}
+.btn:hover { background: hsl(0 0% 100% / .16); }
+.btn:active { transform: scale(.9); }
+.btn.primary {
+  width: 44px; height: 44px;
+  background: hsl(0 0% 100% / .92); color: hsl(var(--hue) 60% 8%);
+  box-shadow: 0 4px 16px hsl(0 0% 100% / .28), inset 0 -1px 0 hsl(0 0% 0% / .1);
+}
+.btn svg { width: 17px; height: 17px; fill: currentColor; }
+.btn.primary svg { width: 19px; height: 19px; }
+
+/* 导航胶囊 */
+.nav {
+  position: relative;
+  height: var(--dock-h);
+  border-radius: var(--r-lg);
+  display: flex; align-items: center;
+  padding: 0 6px;
+  --glass-blur: 28px;
+  overflow: hidden;
+}
+.nav .item {
+  position: relative; z-index: 2;
+  flex: 1; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  border: 0; background: none; cursor: pointer;
+  color: hsl(0 0% 100% / .52);
+  transition: color .3s var(--ease-soft);
+  font: inherit;
+}
+.nav .item .ico { width: 22px; height: 22px; display: block; }
+.nav .item .ico svg { width: 100%; height: 100%; fill: currentColor; }
+.nav .item span { font-size: 10px; font-weight: 600; letter-spacing: .2px; opacity: .9; }
+.nav .item[aria-current="true"] { color: #fff; }
+.nav .item[aria-current="true"] .ico { filter: drop-shadow(0 0 10px hsl(calc(var(--hue)+180) 100% 78% / .8)); }
+.nav .item:active .ico { transform: scale(.88); }
+.nav .item .ico { transition: transform .3s var(--ease); }
+
+/* 液态滑块 */
+.blob {
+  position: absolute; z-index: 1; top: 8px; bottom: 8px;
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 130% at 30% 10%, hsl(0 0% 100% / .55), transparent 56%),
+    radial-gradient(90% 120% at 70% 100%, hsl(calc(var(--hue) + 190) 100% 78% / .22), transparent 62%),
+    hsl(0 0% 100% / .14);
+  box-shadow:
+    inset 0 1.5px 0 hsl(0 0% 100% / .75),
+    inset 0 -8px 16px hsl(0 0% 100% / .14),
+    inset 0 0 0 1px hsl(0 0% 100% / .18),
+    0 6px 18px hsl(0 0% 0% / .38);
+  -webkit-backdrop-filter: blur(6px) saturate(180%) brightness(1.3);
+  backdrop-filter: blur(6px) saturate(180%) brightness(1.3);
+  will-change: transform, width;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* 滑块内部的液滴高光 */
+.blob::before {
+  content: ""; position: absolute; left: 50%; top: 34%;
+  width: 46%; height: 46%; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 40% 35%, hsl(0 0% 100% / .75), transparent 62%);
+  filter: blur(3px);
+  opacity: .8;
+}
+.blob::after {
+  content: ""; position: absolute; inset: 0;
+  background: conic-gradient(from 140deg, hsl(0 0% 100% / .30), transparent 30%, hsl(calc(var(--hue)+180) 100% 80% / .22) 62%, transparent 82%);
+  border-radius: inherit;
+  opacity: .7;
+}
+
+/* ============================================================
+ *  其他页
+ * ============================================================ */
+.scroller { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 18px 20px; scrollbar-width: none; }
+.scroller::-webkit-scrollbar { display: none; }
+.h2 { font-size: 20px; font-weight: 750; letter-spacing: -.4px; margin: 14px 4px 12px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.card {
+  position: relative; border-radius: 20px; overflow: hidden;
+  aspect-ratio: 1 / .86;
+  padding: 14px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  cursor: pointer;
+  transition: background .4s, transform .4s var(--ease);
+  --glass-blur: 18px;
+}
+.card:active { transform: scale(.97); }
+.card b { font-size: 14px; font-weight: 700; position: relative; z-index: 2; }
+.card em { font-style: normal; font-size: 11.5px; color: hsl(0 0% 100% / .58); position: relative; z-index: 2; margin-top: 3px; }
+.card i {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    radial-gradient(85% 78% at 18% 8%, hsl(calc(var(--hue) + var(--k, 0) * 1deg) 96% 68% / .80), transparent 62%),
+    radial-gradient(85% 90% at 88% 92%, hsl(calc(var(--hue) + var(--k, 0) * 1deg + 130) 92% 56% / .62), transparent 66%);
+}
+.card::before { z-index: 0; }
+.card { --glass-tint: hsl(0 0% 100% / .035); }
+.card b, .card em { text-shadow: 0 1px 12px hsl(0 0% 0% / .45); }
+
+.row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; margin-bottom: 8px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background .3s;
+}
+.row:hover { background: hsl(0 0% 100% / .06); }
+.row .n { width: 22px; font-size: 12px; color: hsl(0 0% 100% / .4); font-variant-numeric: tabular-nums; text-align: center; }
+.row .k { flex: 1; min-width: 0; }
+.row .k b { font-size: 14px; font-weight: 600; display: block; }
+.row .k s { font-size: 11.5px; color: hsl(0 0% 100% / .45); text-decoration: none; }
+.row .t { font-size: 11px; color: hsl(0 0% 100% / .4); font-variant-numeric: tabular-nums; }
+
+.set-group { border-radius: 18px; overflow: hidden; --glass-blur: 18px; margin-bottom: 14px; }
+.set {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 16px; font-size: 13.5px;
+  border-bottom: 1px solid hsl(0 0% 100% / .07);
+}
+.set:last-child { border-bottom: 0; }
+.switch {
+  width: 46px; height: 27px; border-radius: 999px; position: relative;
+  background: hsl(0 0% 100% / .16); transition: background .3s;
+  cursor: pointer; flex: none;
+}
+.switch i {
+  position: absolute; top: 3px; left: 3px; width: 21px; height: 21px; border-radius: 50%;
+  background: #fff; transition: transform .34s var(--ease);
+  box-shadow: 0 2px 6px hsl(0 0% 0% / .3);
+}
+.switch[data-on="1"] { background: hsl(calc(var(--hue) + 172) 88% 62%); box-shadow: 0 0 16px hsl(calc(var(--hue) + 172) 90% 60% / .45); }
+.switch[data-on="1"] i { transform: translateX(19px); }
+
+.hint {
+  text-align: center; font-size: 11px; color: hsl(0 0% 100% / .3);
+  padding: 8px 0 2px;
+}
+
+@media (max-width: 420px) {
+  .line .inner { font-size: 23px; }
+  .nav .item span { display: none; }
+  .nav .item { gap: 0; }
+  :root { --dock-h: 58px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aurora, .glass .sheen::after, .interlude i, .chip .dot { animation: none !important; }
+}
+
+/* ============================================================
+ *  设置开关的状态
+ * ============================================================ */
+/* 关掉液态玻璃 → 退化为实色表面 */
+body.no-glass .glass {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: hsl(var(--hue) 22% 11% / .90);
+  border-color: hsl(0 0% 100% / .10);
+}
+/* 关掉流光 */
+body.no-sheen .glass .sheen { display: none; }
+/* 关掉逐字 → 整行纯色 */
+body.no-karaoke .w {
+  background-image: none;
+  color: var(--hi);
+  -webkit-text-fill-color: currentColor;
+}
+body.no-karaoke .line[data-st="past"] .w { color: var(--dim); -webkit-text-fill-color: currentColor; }
+body.no-karaoke .line[data-st="future"] .w { color: var(--dim); -webkit-text-fill-color: currentColor; }
+
+.val { color: hsl(0 0% 100% / .55); font-variant-numeric: tabular-nums; }
+.set[data-tune] { cursor: pointer; }
+.set[data-tune]:active { background: hsl(0 0% 100% / .05); }
+
+/* 桌面:保持移动端骨架居中,背景仍然铺满 */
+@media (min-width: 760px) {
+  .app {
+    width: 480px; margin: 0 auto;
+    background: linear-gradient(180deg, hsl(0 0% 0% / .10), hsl(0 0% 0% / .30));
+    box-shadow:
+      0 0 120px hsl(0 0% 0% / .60),
+      0 0 0 1px hsl(0 0% 100% / .07);
+  }
+}
+
+/* 性能:小面积玻璃件退化为半透明面,backdrop 只留给悬浮栏和迷你条 */
+.chip, .row, .card, .set-group {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: hsl(0 0% 100% / .07);
+}
+.card { background: hsl(0 0% 100% / .035); }
+.set-group { background: hsl(0 0% 100% / .06); }

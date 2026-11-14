@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#05070a" />
+<title>MD3Music · Liquid</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- L0 极光 -->
+<div class="aurora" id="aurora"></div>
+<div class="grain"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M12 2.6 2.6 11.1A1.2 1.2 0 0 0 3.4 13.3H5v6.9c0 .9.7 1.6 1.6 1.6h4.1v-5.5h2.6v5.5h4.1c.9 0 1.6-.7 1.6-1.6v-6.9h1.6a1.2 1.2 0 0 0 .8-2.2z"/></symbol>
+  <symbol id="i-find" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16z"/><path d="m16.2 7.8-2.4 6-6 2.4 2.4-6z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16z"/><circle cx="12" cy="12" r="3.1"/></symbol>
+  <symbol id="i-lib" viewBox="0 0 24 24"><path d="M3.5 3h3v18h-3zM8.6 3h3v18h-3zM14.9 3.6l2.9-.8 4.6 17.1-2.9.8z"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zm0 2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z"/><path d="M10.7 1.9h2.6l.4 2.4 1.6.7 2-1.4 1.9 1.9-1.4 2 .7 1.6 2.4.4v2.6l-2.4.4-.7 1.6 1.4 2-1.9 1.9-2-1.4-1.6.7-.4 2.4h-2.6l-.4-2.4-1.6-.7-2 1.4-1.9-1.9 1.4-2-.7-1.6-2.4-.4v-2.6l2.4-.4.7-1.6-1.4-2 1.9-1.9 2 1.4 1.6-.7z"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M6 5h2.4v14H6zM20 5v14L9.2 12z"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M15.6 5H18v14h-2.4zM4 5v14l10.8-7z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 4h3.6v16H7zM13.4 4H17v16h-3.6z"/></symbol>
+  <symbol id="i-playonly" viewBox="0 0 24 24"><path d="M7.5 4 20 12 7.5 20z"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M17 3.4 21.6 7 17 10.6V8.3h-1.9L9.5 15.7H4v-2.2h4.2l5.6-7.4H17zM4 8.3h5.5l1.6 2.1-1.3 1.7-1.1-1.5H4zM14.6 13.9l1.1 1.5H17v-2.3L21.6 17 17 20.6v-2.3h-3.3l-2.6-3.5 1.3-1.7z"/></symbol>
+</svg>
+
+<div class="app">
+
+  <!-- 顶部 -->
+  <div class="topbar">
+    <div class="chip glass"><span class="dot"></span><span id="topChip">本地库 · 已连接</span></div>
+    <div class="chip glass"><span style="font-weight:700">富江</span></div>
+  </div>
+
+  <div class="pages">
+
+    <!-- ===== 播放页 ===== -->
+    <section class="page on" data-page="play">
+      <div class="now">
+        <div class="art" id="nowArt"></div>
+        <div class="meta">
+          <h1 id="nowTitle">液态玻璃</h1>
+          <p id="nowArtist">富江 · 透明剧场</p>
+        </div>
+      </div>
+
+      <div class="lyric-wrap" id="lyricWrap">
+        <div class="track" id="track"></div>
+      </div>
+
+      <div class="seek">
+        <div class="rail" id="rail"><div class="fill" id="fill"></div></div>
+        <div class="t"><span id="tCur">0:00</span><span id="tDur">1:24</span></div>
+      </div>
+    </section>
+
+    <!-- ===== 首页 ===== -->
+    <section class="page" data-page="home">
+      <div class="scroller">
+        <div class="h2">深夜场</div>
+        <div class="grid">
+          <div class="card glass"><i style="--k:0"></i><b>透明剧场</b><em>富江 · 28 首</em></div>
+          <div class="card glass"><i style="--k:60"></i><b>过曝的夏天</b><em>单曲循环</em></div>
+          <div class="card glass"><i style="--k:140"></i><b>午夜摆渡</b><em>环境音乐</em></div>
+          <div class="card glass"><i style="--k:210"></i><b>液态</b><em>玻璃声场</em></div>
+        </div>
+        <div class="h2">最近播放</div>
+        <div class="row glass"><span class="n">1</span><div class="k"><b>液态玻璃</b><s>富江 · 透明剧场</s></div><span class="t">1:24</span></div>
+        <div class="row glass"><span class="n">2</span><div class="k"><b>过曝的夏天</b><s>富江 · 透明剧场</s></div><span class="t">1:12</span></div>
+        <div class="row glass"><span class="n">3</span><div class="k"><b>午夜摆渡</b><s>富江 · 透明剧场</s></div><span class="t">1:18</span></div>
+      </div>
+    </section>
+
+    <!-- ===== 发现 ===== -->
+    <section class="page" data-page="find">
+      <div class="scroller">
+        <div class="h2">为你生成</div>
+        <div class="hint" style="text-align:left;padding-left:4px">根据近 7 天的收听情绪推断</div>
+        <div class="grid" style="margin-top:14px">
+          <div class="card glass"><i style="--k:300"></i><b>凌晨三点</b><em>低保真 · 32 首</em></div>
+          <div class="card glass"><i style="--k:30"></i><b>玻璃与雨</b><em>氛围 · 41 首</em></div>
+        </div>
+        <div class="h2">排行榜</div>
+        <div class="row glass"><span class="n">01</span><div class="k"><b>液态玻璃</b><s>↑ 3</s></div><span class="t">+128%</span></div>
+        <div class="row glass"><span class="n">02</span><div class="k"><b>午夜摆渡</b><s>—</s></div><span class="t">+41%</span></div>
+        <div class="row glass"><span class="n">03</span><div class="k"><b>过曝的夏天</b><s>↓ 1</s></div><span class="t">+9%</span></div>
+      </div>
+    </section>
+
+    <!-- ===== 资料库 ===== -->
+    <section class="page" data-page="lib">
+      <div class="scroller">
+        <div class="h2">我的</div>
+        <div class="row glass"><span class="n">♡</span><div class="k"><b>我喜欢的音乐</b><s>128 首</s></div></div>
+        <div class="row glass"><span class="n">↓</span><div class="k"><b>已下载</b><s>36 首 · 312 MB</s></div></div>
+        <div class="row glass"><span class="n">≡</span><div class="k"><b>本地歌曲</b><s>本地扫描</s></div></div>
+        <div class="h2">歌单</div>
+        <div class="row glass"><span class="n">1</span><div class="k"><b>透明剧场</b><s>富江 · 3 首</s></div><span class="t">›</span></div>
+        <div class="row glass"><span class="n">2</span><div class="k"><b>写歌用的草稿</b><s>17 首</s></div><span class="t">›</span></div>
+      </div>
+    </section>
+
+    <!-- ===== 设置 ===== -->
+    <section class="page" data-page="set">
+      <div class="scroller">
+        <div class="h2">外观</div>
+        <div class="set-group glass">
+          <div class="set"><span>液态玻璃</span><div class="switch" data-on="1" data-k="glass"><i></i></div></div>
+          <div class="set"><span>歌词流光</span><div class="switch" data-on="1" data-k="sheen"><i></i></div></div>
+          <div class="set"><span>逐字高亮</span><div class="switch" data-on="1" data-k="karaoke"><i></i></div></div>
+          <div class="set"><span>弹簧滚动</span><div class="switch" data-on="1" data-k="spring"><i></i></div></div>
+        </div>
+        <div class="h2">歌词</div>
+        <div class="set-group glass">
+          <div class="set" data-tune="fs"><span>字号</span><span class="val" id="fsVal">28</span></div>
+          <div class="set" data-tune="depth"><span>景深模糊</span><span class="val" id="blurVal">2.4</span></div>
+        </div>
+        <div class="hint">重写版 · 零依赖 · 单页约 40 KB</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ===== Dock ===== -->
+  <div class="dock">
+    <div class="mini glass" id="mini">
+      <div class="art" id="miniArt"></div>
+      <div class="txt"><b id="miniTitle">液态玻璃</b><s id="miniSub">富江 · 透明剧场</s></div>
+      <button class="btn" id="mPrev" aria-label="上一首"><svg><use href="#i-prev"/></svg></button>
+      <button class="btn primary" id="mPlay" aria-label="播放/暂停"><svg><use href="#i-pause"/></svg></button>
+      <button class="btn" id="mNext" aria-label="下一首"><svg><use href="#i-next"/></svg></button>
+      <div class="ring"><i id="ringFill"></i></div>
+      <div class="sheen"></div>
+    </div>
+
+    <div class="nav glass" id="nav">
+      <div class="blob" id="blob"></div>
+      <button class="item" data-go="home"><span class="ico"><svg><use href="#i-home"/></svg></span><span>首页</span></button>
+      <button class="item" data-go="find"><span class="ico"><svg><use href="#i-find"/></svg></span><span>发现</span></button>
+      <button class="item" data-go="play" aria-current="true"><span class="ico"><svg><use href="#i-play"/></svg></span><span>播放</span></button>
+      <button class="item" data-go="lib"><span class="ico"><svg><use href="#i-lib"/></svg></span><span>资料库</span></button>
+      <button class="item" data-go="set"><span class="ico"><svg><use href="#i-set"/></svg></span><span>设置</span></button>
+      <div class="sheen"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="lyrics.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
