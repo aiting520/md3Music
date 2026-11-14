@@ -112,9 +112,7 @@ class _FoliaLyricsState extends State<FoliaLyrics> {
       color: Colors.white,
       letterSpacing: 0.4,
       shadows: active
-          ? [
-              Shadow(color: widget.accent.withOpacity(0.55), blurRadius: 16),
-            ]
+          ? [Shadow(color: widget.accent.withOpacity(0.55), blurRadius: 16)]
           : null,
     );
     final dimStyle = hiStyle.copyWith(
@@ -214,12 +212,14 @@ class _LinePainter extends CustomPainter {
       final p = t == null
           ? 1.0
           : span <= 0
-              ? 1.0
-              : ((t - w.start) / span).clamp(0.0, 1.0).toDouble();
+          ? 1.0
+          : ((t - w.start) / span).clamp(0.0, 1.0).toDouble();
 
       if (p > 0) {
         canvas.save();
-        canvas.clipRect(Rect.fromLTWH(x, y, painterHi.width * p, painterHi.height));
+        canvas.clipRect(
+          Rect.fromLTWH(x, y, painterHi.width * p, painterHi.height),
+        );
         painterHi.paint(canvas, Offset(x, y));
         canvas.restore();
       }
