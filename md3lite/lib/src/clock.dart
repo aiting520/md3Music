@@ -29,5 +29,6 @@ class PlaybackClock extends ChangeNotifier {
     notifyListeners();
   }
 
-  double get progress => duration <= 0 ? 0 : (t / duration).clamp(0.0, 1.0).toDouble();
+  double get progress =>
+      duration <= 0 ? 0 : (t / duration).clamp(0.0, 1.0).toDouble();
 }
