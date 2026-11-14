@@ -59,3 +59,14 @@ cd /tmp/app && flutter pub get && flutter build apk --release --target-platform 
 ## 接真实音频
 
 `clock.dart` 的 `t` 换成 `AudioPlayer.position` 即可，歌词/进度条/悬浮栏都读同一个时钟。
+
+## 出包说明（需要一次性操作）
+
+GitHub 的 OAuth token 必须带 `workflow` scope 才能写入 `.github/workflows/`，
+当前 token 只有 `read:org, repo`，所以 CI 文件放在 `md3lite/ci/lite-apk.yml`。
+
+**二选一，一次即可：**
+
+1. 网页上把 `md3lite/ci/lite-apk.yml` 复制成 `.github/workflows/lite-apk.yml`；
+   之后每次推 `md3lite/**` 会自动构建并上传 artifact `md3lite-apk`。
+2. 直接本地 `flutter build apk --release --target-platform android-arm64`。
