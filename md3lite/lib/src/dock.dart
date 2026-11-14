@@ -32,9 +32,13 @@ class GlassDock extends StatefulWidget {
   State<GlassDock> createState() => _GlassDockState();
 }
 
-class _GlassDockState extends State<GlassDock> with SingleTickerProviderStateMixin {
-  late final AnimationController _slide =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 520), value: 1);
+class _GlassDockState extends State<GlassDock>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _slide = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 520),
+    value: 1,
+  );
   int _from = 2;
 
   static const _items = <(IconData, String)>[
@@ -64,11 +68,7 @@ class _GlassDockState extends State<GlassDock> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        _miniBar(),
-        const SizedBox(height: 10),
-        _navBar(),
-      ],
+      children: [_miniBar(), const SizedBox(height: 10), _navBar()],
     );
   }
 
@@ -118,7 +118,11 @@ class _GlassDockState extends State<GlassDock> with SingleTickerProviderStateMix
                           ],
                         ),
                       ),
-                      _roundButton(Icons.skip_previous_rounded, widget.onPrev, 38),
+                      _roundButton(
+                        Icons.skip_previous_rounded,
+                        widget.onPrev,
+                        38,
+                      ),
                       const SizedBox(width: 8),
                       _playButton(),
                       const SizedBox(width: 8),
@@ -132,14 +136,18 @@ class _GlassDockState extends State<GlassDock> with SingleTickerProviderStateMix
                   right: 0,
                   bottom: 0,
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(22),
+                    ),
                     child: SizedBox(
                       height: 2,
                       child: LinearProgressIndicator(
                         value: widget.clock.progress,
                         minHeight: 2,
                         backgroundColor: Colors.white.withOpacity(0.10),
-                        valueColor: AlwaysStoppedAnimation<Color>(widget.accent),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          widget.accent,
+                        ),
                       ),
                     ),
                   ),
@@ -206,10 +214,17 @@ class _GlassDockState extends State<GlassDock> with SingleTickerProviderStateMix
             return AnimatedBuilder(
               animation: _slide,
               builder: (context, _) {
-                final t = Curves.easeOutBack.transform(_slide.value.clamp(0.0, 1.0).toDouble());
+                final t = Curves.easeOutBack.transform(
+                  _slide.value.clamp(0.0, 1.0).toDouble(),
+                );
                 final x = fromX + (toX - fromX) * t;
                 // 速度 → 沿运动方向拉伸，像一滴被拖着走的液体
-                final stretch = 1 + 0.20 * math.sin(math.pi * _slide.value.clamp(0.0, 1.0).toDouble());
+                final stretch =
+                    1 +
+                    0.20 *
+                        math.sin(
+                          math.pi * _slide.value.clamp(0.0, 1.0).toDouble(),
+                        );
 
                 return Stack(
                   children: [
@@ -231,7 +246,9 @@ class _GlassDockState extends State<GlassDock> with SingleTickerProviderStateMix
                                 Colors.white.withOpacity(0.10),
                               ],
                             ),
-                            border: Border.all(color: Colors.white.withOpacity(0.34)),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.34),
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.white.withOpacity(0.10),
@@ -303,7 +320,11 @@ class _GlassDockState extends State<GlassDock> with SingleTickerProviderStateMix
           ],
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Align(
