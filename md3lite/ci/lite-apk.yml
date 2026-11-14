@@ -1,0 +1,83 @@
+name: Lite APK
+
+# 只构建 md3lite/ 这个精简重写版，不影响主工程
+on:
+  push:
+    paths:
+      - 'md3lite/**'
+      - '.github/workflows/lite-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build md3lite APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # 用 flutter create 生成官方 Android 骨架（gradle / manifest / MainActivity），
+      # 只把 md3lite/lib 与 pubspec 覆盖进去 —— 避免手写 Android 工程踩版本坑
+      - name: Scaffold Android project
+        run: |
+          set -e
+          flutter create --org com.md3lite --project-name md3lite /tmp/app
+          rm -rf /tmp/app/lib /tmp/app/test
+          cp -r md3lite/lib /tmp/app/lib
+          cp md3lite/pubspec.yaml /tmp/app/pubspec.yaml
+
+      - name: Flutter pub get
+        working-directory: /tmp/app
+        run: flutter pub get
+
+      - name: Flutter analyze (non-blocking)
+        working-directory: /tmp/app
+        continue-on-error: true
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build release APK (arm64 only)
+        working-directory: /tmp/app
+        run: |
+          flutter build apk --release --target-platform android-arm64 \
+            --dart-define=APP_VERSION=lite-${{ github.sha }}
+
+      - name: Show APK size
+        run: |
+          set -e
+          apk=/tmp/app/build/app/outputs/flutter-apk/app-release.apk
+          ls -lh "$apk"
+          echo "SIZE_MB=$(( $(stat -c%s "$apk") / 1024 / 1024 ))" >> "$GITHUB_ENV"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: md3lite-apk
+          path: /tmp/app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summary
+        run: |
+          {
+            echo "### md3lite 构建完成"
+            echo ""
+            echo "- APK 大小：**${SIZE_MB} MB**"
+            echo "- 提交：\`${GITHUB_SHA}\`"
+            echo "- 产物：artifact \`md3lite-apk\`（app-release.apk）"
+          } >> "$GITHUB_STEP_SUMMARY"
